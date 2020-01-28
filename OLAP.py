@@ -1,17 +1,8 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[37]:
-
 
 import pandas as pd
 import numpy as np
 import random as rd
 import os
-
-
-# In[38]:
-
 
 # Setup the dimension table
 
@@ -21,24 +12,15 @@ data1 = {"key":["CA", "NY", "WA", "ON", "QU"],
 state_table = pd.DataFrame(data1)
 
 
-# In[39]:
-
-
 data2 = {"key":range(1,13),
          "desc":["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
          "quarter":["Q1","Q1","Q1","Q2","Q2","Q2","Q3","Q3","Q3","Q4","Q4","Q4"]}
 month_table = pd.DataFrame(data2)
 
 
-# In[40]:
-
-
 data3 = {"key":["Printer", "Tablet", "Laptop"],
          "price":[225, 570, 1120]}
 prod_table = pd.DataFrame(data3)
-
-
-# In[41]:
 
 
 # Function to generate the Sales table
@@ -63,16 +45,10 @@ def gen_sales(no_of_recs):
     return(sales)
 
 
-# In[42]:
-
-
 sales_fact = gen_sales(500)
 sales_fact["value"] = 1
 sales_fact['quarter'] = 1
 sales_fact['country'] = 1
-
-
-# In[43]:
 
 
 def amount(cols):
@@ -115,21 +91,12 @@ def country(cols):
             return 'Canada'        
 
 
-# In[44]:
-
-
 sales_fact["quarter"] = sales_fact[['quarter','month']].apply(quarter,axis=1)
 sales_fact["country"] = sales_fact[['country','location']].apply(country,axis=1)
 
 
-# In[45]:
-
-
 sales_fact["value"] = sales_fact[['value','product']].apply(amount,axis=1)
 sales_fact['amount'] = sales_fact["value"]*sales_fact['unit']
-
-
-# In[46]:
 
 
 sales_fact.to_csv('sales.csv')
@@ -137,82 +104,54 @@ sale = os.path.abspath("sales.csv")
 revenue =  pd.read_csv(sale)
 
 
-# In[47]:
-
-
 revenue.drop(['Unnamed: 0','unit','value'],axis=1,inplace=True)
-
-
-# In[48]:
 
 
 revenue = revenue[['month', 'quarter','year','location','country','product','amount']]
 
 
-# In[49]:
+print("Wecome To Operation of OLAP \n")
+print('Data present in the databse\n')
+print(revenue)
 
 
-revenue.head(10)
+while True:
+    olap = str(input("Which operation would you like to perform? \n1)rollup\n2)dice\n3)slice\n4)drilldown\n5)pivot\n")).lower()
+    if olap in ['dice','rollup','slice','drilldown','pivot']:
+        print("Looks like you selected {}.".format(olap))
+        break
+    print('Please enter a valid operation')
 
-#OLAP Operations
-#Here are some common operations of OLAP
-    #Dice
-    #Rollup
-    #Slice
-    #Drilldown
-    #Pivot
 # # "Dice" is about limited each dimension to a certain range of values, while keeping the number of dimensions the same in the resulting cube.  For example, we can focus in sales happening in [Jan/ Feb/Mar, Laptop/Tablet, CA/NY].
 
-# In[50]:
-
-
-dc = revenue[(revenue['year'] ==2018) & (revenue['location'] == 'CA') & 
-             ((revenue['product'] =='Laptop') | (revenue['product']=='Tablet')) &
-            ((revenue['month']==1) | (revenue['month']==2) | (revenue['month']==3))]
-dc.groupby(['year','product','month']).sum()
-
+while True:
+    if olap == 'dice':
+        dc = revenue[(revenue['year'] ==2018) & (revenue['location'] == 'CA') & 
+                 ((revenue['product'] =='Laptop') | (revenue['product']=='Tablet')) &
+                ((revenue['month']==1) | (revenue['month']==2) | (revenue['month']==3))]
+        print(dc.groupby(['year','product','month']).sum())
+        break
 
 # # "Rollup" is about applying an aggregation function to collapse a number of dimensions.  For example, we want to focus in the annual revenue for each product and collapse the location dimension (ie: we don't care where we sold our product). 
 
-# In[51]:
-
-
-revenue.groupby(['year','month']).sum()
-
+    elif olap == 'rollup':
+        print(revenue.groupby(['year','product']).sum())
+        break
 
 # # "Slice" is about fixing certain dimensions to analyze the remaining dimensions.  For example, we can focus in the sales happening in "2019", "Feb", or we can focus in the sales happening in "2019", "Jan", "Tablet".
 
-# In[52]:
-
-
-revenue[(revenue['year'] ==2019) & (revenue['month'] == 2)].head()
-
+    elif olap == 'slice':
+        print(revenue[(revenue['year'] ==2019) & (revenue['month'] == 2)].head())
+        break
 
 # # "Drilldown" is the reverse of "rollup" and applying an aggregation function to a finer level of granularity.  For example, we want to focus in the annual and monthly revenue for each product and collapse the location dimension (ie: we don't care where we sold our product).
-
-# In[53]:
-
-
-revenues = revenue[revenue['product'] == 'Laptop']
-revenues.groupby(['year','month']).sum()
-
+    elif olap == 'drilldown':
+        revenues = revenue[revenue['product'] == 'Laptop']
+        print(revenues.groupby(['year','month']).sum())
+        break
 
 # # "Pivot" is about analyzing the combination of a pair of selected dimensions.  For example, we want to analyze the revenue by year and month.  Or we want to analyze the revenue by product and location.
 
-# In[54]:
-
-
-revenue.pivot_table(index='year',columns='month',values='amount')
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
+    elif olap == 'pivot':
+        print(revenue.pivot_table(index='year',columns='month',values='amount'))
+        break
