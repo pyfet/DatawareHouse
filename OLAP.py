@@ -114,44 +114,63 @@ print("Wecome To Operation of OLAP \n")
 print('Data present in the databse\n')
 print(revenue)
 
+play = True
 
-while True:
+while play:
     olap = str(input("Which operation would you like to perform? \n1)rollup\n2)dice\n3)slice\n4)drilldown\n5)pivot\n")).lower()
     if olap in ['dice','rollup','slice','drilldown','pivot']:
         print("Looks like you selected {}.".format(olap))
-        break
-    print('Please enter a valid operation')
+        
+        '''
+        "Dice" is about limited each dimension to a certain range of values, 
+        while keeping the number of dimensions the same in the resulting cube. 
+        For example, we can focus in sales happening in [Jan/ Feb/Mar, Laptop/Tablet, CA/NY].
+        '''
+        if olap == 'dice':
+            dc = revenue[(revenue['year'] ==2018) & (revenue['location'] == 'CA') & 
+                    ((revenue['product'] =='Laptop') | (revenue['product']=='Tablet')) &
+                    ((revenue['month']==1) | (revenue['month']==2) | (revenue['month']==3))]
+            print(dc.groupby(['year','product','month']).sum())
 
-# # "Dice" is about limited each dimension to a certain range of values, while keeping the number of dimensions the same in the resulting cube.  For example, we can focus in sales happening in [Jan/ Feb/Mar, Laptop/Tablet, CA/NY].
+        '''
+        "Rollup" is about applying an aggregation function to collapse a number of dimensions.
+        For example, we want to focus in the annual revenue for each product and collapse 
+        the location dimension (ie: we don't care where we sold our product). 
+        '''
+        elif olap == 'rollup':
+            print(revenue.groupby(['year','product']).sum())
 
-while True:
-    if olap == 'dice':
-        dc = revenue[(revenue['year'] ==2018) & (revenue['location'] == 'CA') & 
-                 ((revenue['product'] =='Laptop') | (revenue['product']=='Tablet')) &
-                ((revenue['month']==1) | (revenue['month']==2) | (revenue['month']==3))]
-        print(dc.groupby(['year','product','month']).sum())
-        break
+        '''
+        "Slice" is about fixing certain dimensions to analyze the remaining dimensions.
+        For example, we can focus in the sales happening in "2019", "Feb", 
+        or we can focus in the sales happening in "2019", "Jan", "Tablet".
+        '''
+        elif olap == 'slice':
+            print(revenue[(revenue['year'] ==2019) & (revenue['month'] == 2)].head())
 
-# # "Rollup" is about applying an aggregation function to collapse a number of dimensions.  For example, we want to focus in the annual revenue for each product and collapse the location dimension (ie: we don't care where we sold our product). 
+        '''
+        "Drilldown" is the reverse of "rollup" and applying an aggregation function to a finer level of granularity.
+        For example, we want to focus in the annual and monthly revenue for each product 
+        and collapse the location dimension (ie: we don't care where we sold our product).
+        '''
+        elif olap == 'drilldown':
+            revenues = revenue[revenue['product'] == 'Laptop']
+            print(revenues.groupby(['year','month']).sum())
 
-    elif olap == 'rollup':
-        print(revenue.groupby(['year','product']).sum())
-        break
+        '''
+        "Pivot" is about analyzing the combination of a pair of selected dimensions.
+        For example, we want to analyze the revenue by year and month.
+        Or we want to analyze the revenue by product and location.
+        '''
+        elif olap == 'pivot':
+            print(revenue.pivot_table(index='year',columns='month',values='amount'))
+        
+        flag = str(input("Do you wish to continue [y|N] > "))
 
-# # "Slice" is about fixing certain dimensions to analyze the remaining dimensions.  For example, we can focus in the sales happening in "2019", "Feb", or we can focus in the sales happening in "2019", "Jan", "Tablet".
+        if flag.lower == 'y':
+            continue
+        else:
+            play = False
 
-    elif olap == 'slice':
-        print(revenue[(revenue['year'] ==2019) & (revenue['month'] == 2)].head())
-        break
-
-# # "Drilldown" is the reverse of "rollup" and applying an aggregation function to a finer level of granularity.  For example, we want to focus in the annual and monthly revenue for each product and collapse the location dimension (ie: we don't care where we sold our product).
-    elif olap == 'drilldown':
-        revenues = revenue[revenue['product'] == 'Laptop']
-        print(revenues.groupby(['year','month']).sum())
-        break
-
-# # "Pivot" is about analyzing the combination of a pair of selected dimensions.  For example, we want to analyze the revenue by year and month.  Or we want to analyze the revenue by product and location.
-
-    elif olap == 'pivot':
-        print(revenue.pivot_table(index='year',columns='month',values='amount'))
-        break
+    else:
+        print('Please enter a valid operation')
